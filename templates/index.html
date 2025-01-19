@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pyinstaller test</title>
+</head>
+<body>
+    <h1>Welcome to Pyinstaller</h1>
+    <button onclick="postm()">Click Me</button>
+    <p id="dis"></p>
+    <script>
+        function postm(){
+            fetch('/test', {
+                'headers': {'Content-type': 'application/json'},
+                'method': 'POST',
+                'body': JSON.stringify({'data': 'hey'})
+            })
+            .then(res=>{return res.json()})
+            .then(res=>{
+                document.getElementById('dis').innerHTML = res.data
+            })
+        }
+    </script>
+</body>
+</html>
