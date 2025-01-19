@@ -34,10 +34,10 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
 
-    # Conditional build command based on OS
+    # Build with PyInstaller
     - name: Build with PyInstaller
       run: |
-        if [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+        if [ "${{ runner.os }}" == "Windows" ]; then
           pyinstaller --onefile --add-data "templates;templates" app.py
         else
           pyinstaller --onefile --add-data "templates:templates" app.py
