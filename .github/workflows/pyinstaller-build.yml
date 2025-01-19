@@ -12,7 +12,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ubuntu-latest, macos-latest]
 
     runs-on: ${{ matrix.os }}
 
@@ -37,11 +37,7 @@ jobs:
     # Build with PyInstaller
     - name: Build with PyInstaller
       run: |
-        if [ "${{ runner.os }}" == "Windows" ]; then
-          pyinstaller --onefile --add-data "templates;templates" app.py
-        else
           pyinstaller --onefile --add-data "templates:templates" app.py
-        fi
 
     # Upload the artifact (executable)
     - name: Upload executable
