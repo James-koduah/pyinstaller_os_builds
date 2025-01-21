@@ -86,13 +86,14 @@ def preview_mode():
         print('Aborting...')
         return False
     return True
-    
+    list
 
 def validate_config_values():
     # Validate Config Values
     if not IMAGES_FOLDER:
         print("Error. Missing Config Value: IMAGES_FOLDER")
         print("Please Specify the folder containing the images Images in the .env config file")
+        input("Press any key to close ")
         return False
     
     if not OUTPUT_FOLDER:
@@ -157,7 +158,7 @@ def add_exif(image_path, type, date):
         try:
             image.save(f"{OUTPUT_FOLDER}/{image_path}", exif=exif_bytes)
         except Exception as e:
-            print("Output Folder does not exist. Please create it.")
+            print(f"Output Folder ({OUTPUT_FOLDER}), does not exist. Please create it.")
             sys.exit()
     else:
         image.save(f"{IMAGES_FOLDER}/{image_path}", exif=exif_bytes)
@@ -219,13 +220,13 @@ def main():
                 frame_number = 0
 
 def run():
-    if PREVIEW_MODE:
-        proceed = preview_mode()
-        if not proceed:
-            return
             
     proceed = validate_config_values()
     if proceed:
+        if PREVIEW_MODE:
+            proceed = preview_mode()
+            if not proceed:
+                return
         main()
 
 if __name__ == '__main__':
