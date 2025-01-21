@@ -219,14 +219,17 @@ def main():
                 frame_number = 0
 
 def run():
-    if PREVIEW_MODE:
-        proceed = preview_mode()
-        if not proceed:
-            return
             
     proceed = validate_config_values()
     if proceed:
+        if PREVIEW_MODE:
+            proceed = preview_mode()
+            if not proceed:
+                return
         main()
+    else:
+        hh = input("Press any key to abort")
+        return
 
 if __name__ == '__main__':
     run()
