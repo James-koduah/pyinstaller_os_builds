@@ -93,6 +93,7 @@ def validate_config_values():
     if not IMAGES_FOLDER:
         print("Error. Missing Config Value: IMAGES_FOLDER")
         print("Please Specify the folder containing the images Images in the .env config file")
+        input("Press any key to abort")
         return False
     
     if not OUTPUT_FOLDER:
