@@ -220,7 +220,6 @@ def main():
                 frame_number = 0
 
 def run():
-            
     proceed = validate_config_values()
     if proceed:
         if PREVIEW_MODE:
@@ -228,6 +227,8 @@ def run():
             if not proceed:
                 return
         main()
+    else:
+        return
 
 if __name__ == '__main__':
     run()
