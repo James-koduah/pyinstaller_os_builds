@@ -1,6 +1,5 @@
 from datetime import datetime
 import os
-import sys
 import time
 from flask import Flask, jsonify, render_template, request
 from flask_socketio import SocketIO, emit
@@ -8,6 +7,7 @@ from image_exif import sort_all_filenames_in_folder_numerically, make_sure_all_i
 import webbrowser
 import threading
 import socket
+from engineio.async_drivers import gevent
 
 app = Flask(__name__)
 

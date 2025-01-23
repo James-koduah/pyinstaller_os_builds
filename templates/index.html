@@ -678,6 +678,7 @@
 
         let loadingOutput = document.getElementById('loading_output') 
         socket.on('processing', (data)=>{
+            console.log('processing')
             let p = document.createElement('p')
             p.innerHTML = `Processing Bracket Group: `
             for (i = 0; i < data.length; i++){
@@ -688,6 +689,7 @@
         })
 
         socket.on('stopped_process', ()=>{
+            console.log('stoped')
             let p = document.createElement('p')
             p.innerHTML = `Processing Stopped`
             loadingOutput.appendChild(p)
