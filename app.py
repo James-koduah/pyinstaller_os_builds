@@ -12,7 +12,7 @@ import socket
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'verysecretlol'
-socketio = SocketIO(app, async_mode='gevent')
+socketio = SocketIO(app)
 
 keep_running = True
 
