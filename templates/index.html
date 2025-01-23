@@ -1,26 +1,704 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pyinstaller test</title>
+    <meta content="width=device-width, initial-scale=1.0">
+    <title>Image Metadata Editor</title>
+    <script src="/static/socketio.js"></script>
+    <style>
+        * {
+            padding: 0;
+            margin: 0;
+        }
+
+        :root {
+            --ma-bg: #f2f2f2;
+            --su-bg: #f7f7f7;
+            --box-shadow: 0px 2px 3px 3px #ddd;
+        }
+
+        body {
+            width: 94%;
+            padding: 20px 3%;
+            background-color: var(--ma-bg);
+            font-size: 5px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+        }
+
+        main {
+            width: calc(100% - 30px);
+            min-height: 90vh;
+            padding: 15px;
+            border-radius: 8px;
+            background: var(--su-bg);
+            box-shadow: var(--box-shadow);
+        }
+
+        #mainContainer {
+            width: 100%;
+            height: 100%;
+            display: flex;
+        }
+
+        #settings {
+            width: 330px;
+            padding: 0 10px;
+            border-right: 5px var(--ma-bg) solid;
+            flex-shrink: 0;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .settingsheader {
+            width: 100%;
+            font-size: 4em;
+            font-weight: 600;
+            margin-bottom: 18px;
+        }
+
+        #output {
+            width: calc(100% - 20px);
+            padding: 0px 10px;
+        }
+
+        #outputTop {
+            width: 100%;
+            display: flex;
+            justify-content: end;
+        }
+
+
+
+        h2 {
+            font-size: 3em;
+            margin-top: 10px;
+            margin-bottom: 5px;
+            width: 100%;
+            font-weight: 600;
+        }
+
+        h3 {
+            font-size: 3em;
+            margin-bottom: 5px;
+            width: 100%;
+            font-weight: 400;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            display: flex;
+            align-items: center;
+            border-radius: 5px;
+            border: none;
+            cursor: pointer;
+        }
+
+        .btn svg {
+            margin-right: 5px;
+        }
+
+        .btn-primary {
+            background: lightgreen;
+        }
+        .btn-error {
+            background: rgb(251, 88, 70);
+        }
+        .btn-secondary{
+            background: rgb(41, 132, 243);
+        }
+
+        .item {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .half {
+            width: 47%;
+        }
+
+        .quater {
+            width: 31%;
+            text-align: center;
+        }
+        .quater input{
+            text-align: center;
+        }
+
+        .item p {
+            font-size: 3em;
+            margin-bottom: 5px;
+        }
+
+        .item input {
+            width: 94%;
+            height: 35px;
+            padding: 0 3%;
+            background-color: transparent;
+            box-shadow: var(--box-shadow);
+            border: none;
+            border-radius: 5px;
+        }
+        .item input[type="radio"]{
+            width: fit-content;
+            box-shadow: none;
+            height: fit-content;
+            margin: 0 5px;
+            cursor: pointer;
+        }
+        .flex{
+            display: flex;
+            align-items: center;
+        }
+
+        #error {
+            margin-top: 50px;
+            display: none;
+        }
+
+        #error_message {
+            width: 70%;
+            max-width: 350px;
+            font-size: 3em;
+            margin: 0 auto;
+            line-height: 150%;
+            text-align: center;
+        }
+        #error_actions{
+            width: 70%;
+            max-width: 350px;
+            margin: 15px auto;
+        }
+        #error_actions button{
+            width: 100%;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            font-weight: 600;
+        }
+        .fiveframes{
+            display: none;
+        }
+    </style>
+    <style>
+        #loading {
+            margin-top: 50px;
+            display: none;
+        }
+
+        .loading-container {
+            width: 80%;
+            margin: 0 10%;
+            height: 50px;
+            position: relative;
+        }
+
+        .loading-bar {
+            position: absolute;
+            top: 50%;
+            left: 0%;
+            width: 100px;
+            height: 5px;
+            background-color: #000;
+            animation: loadingBar 2s infinite;
+            transition: 1s;
+        }
+        #loading_output{
+            width: 70%;
+            margin: 30px auto;
+        }
+        #loading_output p{
+            font-size: 2.5em;
+            margin-bottom: 7px;
+        }
+
+        @keyframes loadingBar {
+            0% {
+                left: 0%;
+                width: 100px;
+            }
+
+            25% {
+                width: 150px;
+            }
+
+            50% {
+                left: calc(100% - 100px);
+                width: 100px;
+            }
+
+            75% {
+                width: 150px;
+            }
+
+            100% {
+                left: 0%;
+                width: 100px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <h1>Welcome to Pyinstaller</h1>
-    <button onclick="postm()">Click Me</button>
-    <p id="dis"></p>
+    <main>
+        <div id="mainContainer">
+            <div id="settings">
+                <header class="settingsheader">Folder Settings</header>
+                <div class="item">
+                    <p>Enter folder path</p>
+                    <input type="text" id="folder_path" placeholder="C:\Users\username\path\to\images\">
+                </div>
+                <div class="item">
+                    <p>Enter Output folder path (Optional)</p>
+                    <input type="text" id="output_path" placeholder="C:\Users\username\path\to\output\ (Optional)">
+                </div>
+                <h3 title="This is to define how frames are arranged in the folder">Frame Sequence</h3>
+                <div class="item half flex">
+                    <input type="radio" name="option" value="option1" checked="true" onclick="threeFrames()">
+                    <p>3 Frames</p>
+                </div>
+                <div class="item half flex">
+                    <input type="radio" name="option" value="option2" onclick="fiveFrames()">
+                    <p>5 Frames</p>
+                </div>
+                <div id="threeframes" style="display: flex;">
+                    <div class="item quater"><input type="text" id="sequence1" value="under"></div>
+                    <div class="item quater"><input type="text" id="sequence2" value="over"></div>
+                    <div class="item quater"><input type="text" id="sequence3" value="normal"></div>
+                </div>
+                <div id="fiveframes" style="display: none; width: 100%;">
+                    <div class="item"><input type="text" id="sequence15" value="under"></div>
+                    <div class="item"><input type="text" id="sequence25" value="mild-under"></div>
+                    <div class="item"><input type="text" id="sequence35" value="normal"></div>
+                    <div class="item"><input type="text" id="sequence45" value="mild-over"></div>
+                    <div class="item"><input type="text" id="sequence55" value="over"></div>
+                </div>
+               
+
+                <header class="settingsheader" style="margin-top: 20px;">General Metadata Settings</header>
+                <div class="item half">
+                    <p>Camera Make</p>
+                    <input type="text" id="camera_make" placeholder="Default: unknown">
+                </div>
+                <div class="item half">
+                    <p>Camera Model</p>
+                    <input type="text" id="camera_model" placeholder="Default: unknown">
+                </div>
+                <div class="item half">
+                    <p>White Balance</p>
+                    <input type="number" id="white_balance" placeholder="Default: 0">
+                </div>
+                <div class="item half">
+                    <p>Focal Length</p>
+                    <input type="number" id="focal_length" placeholder="Default: 50">
+                </div>
+                <div class="item half">
+                    <p>ISO Speed</p>
+                    <input type="number" id="iso_speed" placeholder="Default: 100">
+                </div>
+                <div class="item half">
+                    <p>Aperture</p>
+                    <input type="number" id="aperture" placeholder="Default: 2.8">
+                </div>
+
+                <header class="settingsheader" style="margin-top: 30px; margin-bottom: 14px;">Frame Metadata Settings</header>
+                <h2>Under Frame Metadata</h2>
+                <div class="item half">
+                    <p>Exposure Time</p>
+                    <input type="number" id="under_exposure_time" placeholder="Default: 500">
+                </div>
+                <div class="item half">
+                    <p>Exposure Bias</p>
+                    <input type="number" id="under_exposure_bias" placeholder="Default: -2">
+                </div>
+
+                <h2 class="fiveframes">Mild-Under Frame Metadata</h2>
+                <div class="item half fiveframes">
+                    <p>Exposure Time</p>
+                    <input type="number" id="mild_under_exposure_time" placeholder="Default: 250">
+                </div>
+                <div class="item half fiveframes">
+                    <p>Exposure Bias</p>
+                    <input type="number" id="mild_under_exposure_bias" placeholder="Default: -1">
+                </div>
+
+                <h2>Normal Frame Metadata</h2>
+                <div class="item half">
+                    <p>Exposure Time</p>
+                    <input type="number" id="normal_exposure_time" placeholder="Default: 125">
+                </div>
+                <div class="item half">
+                    <p>Exposure Bias</p>
+                    <input type="number" id="normal_exposure_bias" placeholder="Default: 0">
+                </div>
+
+                
+                <h2 class="fiveframes">Mild-Over Frame Metadata</h2>
+                <div class="item half fiveframes">
+                    <p>Exposure Time</p>
+                    <input type="number" id="mild_over_exposure_time" placeholder="Default: 60">
+                </div>
+                <div class="item half fiveframes">
+                    <p>Exposure Bias</p>
+                    <input type="number" id="mild_over_exposure_bias" placeholder="Default: 1">
+                </div>
+
+                <h2>Over Frame Metadata</h2>
+                <div class="item half">
+                    <p>Exposure Time</p>
+                    <input type="number" id="over_exposure_time" placeholder="Default: 30">
+                </div>
+                <div class="item half">
+                    <p>Exposure Bias</p>
+                    <input type="number" id="over_exposure_bias" placeholder="Default: 2">
+                </div>
+
+            </div>
+            <div id="output">
+                <div id="outputTop">
+                    <button id="stop_processing" style="display: none;" class="btn btn-error" onclick="stopProcessing()">Stop Processing</button>
+                    <button id="start_processing" class="btn btn-primary" onclick="beginProcessing()">Begin Processing</button>
+                </div>
+
+                <div id="loading">
+                    <h2 style="text-align: center;">Processing...</h2>
+                    <div class="loading-container">
+                        <div class="loading-bar"></div>
+                    </div>
+                    <div id="loading_output"></div>
+                </div>
+                <div id="error">
+                    <h2 id="error_header" style="text-align: center; font-size: 5em; color: red;">Error</h2>
+                    <p id="error_message"></p>
+                    <div id="error_actions"></div>
+                </div>
+            </div>
+        </div>
+    </main>
     <script>
-        function postm(){
-            fetch('/test', {
-                'headers': {'Content-type': 'application/json'},
+        const socket = io();
+        socket.emit('connected')
+
+
+        let folder_path = document.getElementById('folder_path')
+        let output_path = document.getElementById('output_path')
+
+        let sequence1 = document.getElementById('sequence1')
+        let sequence2 = document.getElementById('sequence2')
+        let sequence3 = document.getElementById('sequence3')
+        let sequence15 = document.getElementById('sequence15')
+        let sequence25 = document.getElementById('sequence25')
+        let sequence35 = document.getElementById('sequence35')
+        let sequence45 = document.getElementById('sequence45')
+        let sequence55 = document.getElementById('sequence55')
+        
+        let camera_make = document.getElementById('camera_make')
+        let camera_model = document.getElementById('camera_model')
+        let white_balance = document.getElementById('white_balance')
+        let focal_length = document.getElementById('focal_length')
+        let iso_speed = document.getElementById('iso_speed')
+        let aperture = document.getElementById('aperture')
+        let under_exposure_time = document.getElementById('under_exposure_time')
+        let under_exposure_bias = document.getElementById('under_exposure_bias')
+        let mild_under_exposure_time = document.getElementById('mild_under_exposure_time')
+        let mild_under_exposure_bias = document.getElementById('mild_under_exposure_bias')
+        let over_exposure_time = document.getElementById('over_exposure_time')
+        let over_exposure_bias = document.getElementById('over_exposure_bias')
+        let mild_over_exposure_time = document.getElementById('mild_over_exposure_time')
+        let mild_over_exposure_bias = document.getElementById('mild_over_exposure_bias')
+        let normal_exposure_time = document.getElementById('normal_exposure_time')
+        let normal_exposure_bias = document.getElementById('normal_exposure_bias')
+
+        let error_ = document.getElementById('error')
+        let error_header = document.getElementById('error_header')
+        let error_message = document.getElementById('error_message')
+        let error_actions = document.getElementById('error_actions')
+
+        let loading_ = document.getElementById('loading')
+
+        let start_processing_btn = document.getElementById('start_processing')
+        let stop_processing_btn = document.getElementById('stop_processing')
+
+        function isEmptyString(value) {
+            if (value === null || value === undefined || value === false) {
+                return true;
+            }
+            if (typeof value === "string" && value.trim().length === 0) {
+                return true;
+            }
+            return false;
+        }
+        function isNotNumber(value) {
+            if (value === '' || value === null || isNaN(value)) {
+                return true
+            }
+            return false
+        }
+
+        function error(message, header='Error') {
+            loading_close()
+            error_.style.display = 'block'
+            error_header.innerHTML = header
+            error_message.innerHTML = message
+            error_actions.innerHTML = ''
+        }
+        function error_close() {
+            error_.style.display = 'none'
+        }
+        function loading() {
+            loading_.style.display = 'block'
+        }
+        function loading_close() {
+            loading_.style.display = 'none'
+        }
+
+
+        let currentFramesNumber = 3
+        function fiveFrames(){
+            document.getElementById('threeframes').style.display = 'none'
+            document.getElementById('fiveframes').style.display = 'block'
+            currentFramesNumber = 5
+            for (let div of document.getElementsByClassName('fiveframes')){
+                div.style.display = 'block'
+            }
+        }
+        function threeFrames(){
+            document.getElementById('threeframes').style.display = 'flex'
+            document.getElementById('fiveframes').style.display = 'none'
+            currentFramesNumber = 5
+            for (let div of document.getElementsByClassName('fiveframes')){
+                div.style.display = 'none'
+            }
+        }
+
+        function processing_state(arg){
+            if (arg){
+                stop_processing_btn.style.display = 'block'
+                start_processing_btn.style.display = 'none'
+            }else{
+                stop_processing_btn.style.display = 'none'
+                start_processing_btn.style.display = 'block'
+            }
+        }
+
+        function beginProcessing() {
+            error_close()
+            if (isEmptyString(folder_path.value)) {
+                error("Empty Folder path. Please set the folder path")
+                return
+            }
+
+            let frame_sequence;
+            if (currentFramesNumber == 3){
+                frame_sequence =  [sequence1.value, sequence2.value, sequence3.value]
+                if (frame_sequence.indexOf('over') == -1 ||
+                    frame_sequence.indexOf('under') == -1 ||
+                    frame_sequence.indexOf('normal') == -1
+                ) {
+                    error("Invalid Frame Sequence. Frames can be set in any order:<br>under, over, normal<br>normal, under, over<br>over, normal, under<br>etc<br><br>This setting defines how the frames are arranged in the folder")
+                    return
+                }
+            }else if(currentFramesNumber == 5){
+                frame_sequence = [sequence15.value, sequence25.value, sequence35.value, sequence45.value, sequence55.value]
+                if (frame_sequence.indexOf('over') == -1 ||
+                    frame_sequence.indexOf('under') == -1 ||
+                    frame_sequence.indexOf('normal') == -1 ||
+                    frame_sequence.indexOf('mild-under') == -1 ||
+                    frame_sequence.indexOf('mild-over') == -1
+                ) {
+                    console.log(frame_sequence)
+                    error(`Invalid Frame Sequence. Frames can be set in any order:
+                    <br>under, mild-under, over, mild-over, normal
+                    <br>normal, mild-under, mild-over, under, over
+                    <br>over, mild-over, normal, mild-under, under<br>etc<br><br>This setting defines how the frames are arranged in the folder`)
+                    return
+                }
+            }
+            
+
+            if (isEmptyString(camera_make.value)) {
+                camera_make.value = 'unknown'
+            }
+            if (isEmptyString(camera_model.value)) {
+                camera_model.value = 'unknown'
+            }
+
+            if (isNotNumber(white_balance.value)) {
+                white_balance.value = 0
+            }
+            if (isNotNumber(focal_length.value)) {
+                focal_length.value = 50
+            }
+            if (isNotNumber(iso_speed.value)) {
+                iso_speed.value = 100
+            }
+            if (isNotNumber(aperture.value)) {
+                aperture.value = 2.8
+            }
+            if (isNotNumber(under_exposure_time.value)) {
+                under_exposure_time.value = 500
+            }
+            if (isNotNumber(under_exposure_bias.value)) {
+                under_exposure_bias.value = -2
+            }
+            if (isNotNumber(mild_under_exposure_time.value)) {
+                mild_under_exposure_time.value = 250
+            }
+            if (isNotNumber(mild_under_exposure_bias.value)) {
+                mild_under_exposure_bias.value = -1
+            }
+            if (isNotNumber(normal_exposure_time.value)) {
+                normal_exposure_time.value = 125
+            }
+            if (isNotNumber(normal_exposure_bias.value)) {
+                normal_exposure_bias.value = -0
+            }
+            if (isNotNumber(over_exposure_time.value)) {
+                over_exposure_time.value = 30
+            }
+            if (isNotNumber(over_exposure_bias.value)) {
+                over_exposure_bias.value = 2
+            }
+            if (isNotNumber(mild_over_exposure_time.value)) {
+                mild_over_exposure_time.value = 60
+            }
+            if (isNotNumber(mild_over_exposure_bias.value)) {
+                mild_over_exposure_bias.value = 1
+            }
+            let payload = {
+                    folder_path: folder_path.value,
+                    output_path: output_path.value,
+                    frame_sequence: frame_sequence,
+                    camera_make: camera_make.value,
+                    camera_model: camera_model.value,
+                    white_balance: white_balance.value,
+                    focal_length: focal_length.value,
+                    iso_speed: iso_speed.value,
+                    aperture: Number(aperture.value) * 10,
+                    under_exposure_time: under_exposure_time.value,
+                    under_exposure_bias: under_exposure_bias.value,
+                    mild_under_exposure_time: mild_under_exposure_time.value,
+                    mild_under_exposure_bias: mild_under_exposure_bias.value,
+                    over_exposure_time: over_exposure_time.value,
+                    over_exposure_bias: over_exposure_bias.value,
+                    mild_over_exposure_time: mild_over_exposure_time.value,
+                    mild_over_exposure_bias: mild_over_exposure_bias.value,
+                    normal_exposure_time: normal_exposure_time.value,
+                    normal_exposure_bias: normal_exposure_bias.value
+                }
+            loading()
+            if (currentFramesNumber == 3){
+                delete payload.mild_over_exposure_bias
+                delete payload.mild_over_exposure_time
+                delete payload.mild_under_exposure_bias
+                delete payload.mild_under_exposure_time
+            }
+
+            processing_state(true)
+            fetch('/begin_processing', {
+                'headers': { 'Content-type': 'application/json' },
                 'method': 'POST',
-                'body': JSON.stringify({'data': 'hey'})
+                'body': JSON.stringify(payload)
             })
-            .then(res=>{return res.json()})
-            .then(res=>{
-                document.getElementById('dis').innerHTML = res.data
+            .then(res => { return res.json() })
+            .then(json => {
+                if (!json.status){
+                    
+                    processing_state(false)
+                    if (json.problem === 'empty_folder'){
+                        error("No file found in folder. Supported formats<br> [jpg, png, tiff, tif]")
+                    }
+                    if (json.problem === 'bad_path'){
+                        error("Error opening folder. Please make sure you have the correct path set")
+                    }
+                    if (json.problem === 'missing_files'){
+                        error("Some Frame(s) detected to be missing.<br>"+json.data+"<br>This can damage the bracket grouping", "We have a problem...")
+                        let cancel = document.createElement('button')
+                        cancel.className = 'btn btn-error'
+                        cancel.innerHTML = 'Stop Processing'
+                        cancel.onclick = ()=>{error_close()}
+                        let cont = document.createElement('button')
+                        cont.className = 'btn btn-primary'
+                        cont.innerHTML = "Ignore warning. Process frames as it is"
+                        cont.onclick = ()=>{continue_processing_files(payload)}
+                        let smart = document.createElement('button')
+                        smart.className = 'btn btn-secondary'
+                        smart.innerHTML = "Skip bracket groups with missing Frames"
+                        smart.onclick = ()=>{process_skip_missing_files(payload)}
+                        error_actions.appendChild(cancel)
+                        error_actions.appendChild(cont)
+                        error_actions.appendChild(smart)
+                    }
+                }
             })
         }
+
+        function continue_processing_files(payload){
+            
+            processing_state(true)
+            error_close()
+            loading()
+            fetch('/continue_processing', {
+                'headers': { 'Content-type': 'application/json' },
+                'method': 'POST',
+                'body': JSON.stringify(payload)
+            })
+            .then(res => { return res.json() })
+            .then(json => {
+                console.log(json)
+            })
+        }
+
+        function process_skip_missing_files(payload){
+            processing_state(true)
+            error_close()
+            loading()
+            fetch('/skip_broken', {
+                'headers': { 'Content-type': 'application/json' },
+                'method': 'POST',
+                'body': JSON.stringify(payload)
+            })
+            .then(res => { return res.json() })
+            .then(json => {
+                console.log(json)
+            })
+        }
+
+        function stopProcessing(){
+            socket.emit('stop_processing')
+        }
+
+        socket.on('error', (data)=>{
+            error(data)
+        })
+
+        let loadingOutput = document.getElementById('loading_output') 
+        socket.on('processing', (data)=>{
+            let p = document.createElement('p')
+            p.innerHTML = `Processing Bracket Group: `
+            for (i = 0; i < data.length; i++){
+                if (i !== 0) p.innerHTML += ", "
+                p.innerHTML += data[i]
+            } 
+            loadingOutput.appendChild(p)
+        })
+
+        socket.on('stopped_process', ()=>{
+            let p = document.createElement('p')
+            p.innerHTML = `Processing Stopped`
+            loadingOutput.appendChild(p)
+            processing_state(false)
+        })
+
+
+
+
     </script>
+
 </body>
+
 </html>

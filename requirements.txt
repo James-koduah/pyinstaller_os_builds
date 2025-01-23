@@ -1,3 +1,5 @@
 pillow
 piexif
 python-dotenv
+flask
+flask-socketio
