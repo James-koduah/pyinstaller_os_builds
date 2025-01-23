@@ -37,7 +37,7 @@ jobs:
 
     # Upload the artifact (executable)
     - name: Upload executable
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: flask-app-windows
         path: dist/app.exe
