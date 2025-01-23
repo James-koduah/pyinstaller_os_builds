@@ -12,7 +12,7 @@ import socket
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'verysecretlol'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode='gevent')
 
 keep_running = True
 
@@ -52,11 +52,6 @@ def skip_broken():
     process_files(data, filtered_brackets)
     return jsonify({})
 
-# def process_files(data, filenames):
-#     global stop_event
-#     stop_event.clear()
-#     thread = threading.Thread(target=process_files_, args=(data, filenames))
-#     thread.start()
 
 def process_files(data, filenames):
 
@@ -124,12 +119,8 @@ def stop_process():
     """Stops the long-running process."""
     global keep_running
     keep_running = False
+    print('stopping')
     emit('stopped_process')
-
-# @socketio.on('disconnect')
-# def handle_disconnect(data):
-#     shutdown_server()
-
 
 def open_browser(port):
     # Open the browser to the specified port
@@ -153,4 +144,4 @@ def find_free_port(default_port=5000):
 if __name__ == '__main__':
     port = find_free_port()  # Get an available port
     threading.Thread(target=open_browser, args=(port,)).start()
-    socketio.run(app)
+    socketio.run(app, host='0.0.0.0', port=port, debug=True)

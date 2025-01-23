@@ -3,3 +3,4 @@ piexif
 python-dotenv
 flask
 flask-socketio
+gevent
