@@ -1,4 +1,4 @@
-name: Build PyInstaller Executables for Windows
+name: Build PyInstaller Executables for macOS
 
 on:
   push:
@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: windows-latest
+    runs-on: macos-latest
 
     steps:
     # Checkout the repository
@@ -33,11 +33,15 @@ jobs:
     # Build with PyInstaller
     - name: Build with PyInstaller
       run: |
-        pyinstaller --onefile --noconsole --add-data "templates;templates" --add-data "static;static" --add-data "logo.ico;." --icon=logo.png metadataEditor.py
+        pyinstaller --onefile --noconsole \
+          --add-data "templates:templates" \
+          --add-data "static:static" \
+          --add-data "logo.ico:." \
+          --icon=logo.icns metadataEditor.py
 
     # Upload the artifact (executable)
     - name: Upload executable
       uses: actions/upload-artifact@v4
       with:
-        name: metadataEditor-app-windows
-        path: dist/metadataEditor.exe
+        name: metadataEditor-macos
+        path: dist/metadataEditor

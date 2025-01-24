@@ -6,6 +6,7 @@
     <meta content="width=device-width, initial-scale=1.0">
     <title>Image Metadata Editor</title>
     <script src="/static/socketio.js"></script>
+    <link rel="icon" href="/static/logo.png" type="image/x-icon">
     <style>
         * {
             padding: 0;
@@ -43,8 +44,8 @@
 
         #settings {
             width: 330px;
+            height: fit-content;
             padding: 0 10px;
-            border-right: 5px var(--ma-bg) solid;
             flex-shrink: 0;
             display: flex;
             flex-wrap: wrap;
@@ -61,6 +62,8 @@
         #output {
             width: calc(100% - 20px);
             padding: 0px 10px;
+            
+            border-left: 5px var(--ma-bg) solid;
         }
 
         #outputTop {
@@ -469,7 +472,7 @@
         function threeFrames(){
             document.getElementById('threeframes').style.display = 'flex'
             document.getElementById('fiveframes').style.display = 'none'
-            currentFramesNumber = 5
+            currentFramesNumber = 3
             for (let div of document.getElementsByClassName('fiveframes')){
                 div.style.display = 'none'
             }
@@ -499,7 +502,7 @@
                     frame_sequence.indexOf('under') == -1 ||
                     frame_sequence.indexOf('normal') == -1
                 ) {
-                    error("Invalid Frame Sequence. Frames can be set in any order:<br>under, over, normal<br>normal, under, over<br>over, normal, under<br>etc<br><br>This setting defines how the frames are arranged in the folder")
+                    error("Invalid Frame Sequence. Frames can be set in any order:<br>under, over, normal<br>normal, under, over<br>over, normal, under<br>etc<br><br>This setting should define how the frames are arranged in the folder")
                     return
                 }
             }else if(currentFramesNumber == 5){
@@ -514,7 +517,7 @@
                     error(`Invalid Frame Sequence. Frames can be set in any order:
                     <br>under, mild-under, over, mild-over, normal
                     <br>normal, mild-under, mild-over, under, over
-                    <br>over, mild-over, normal, mild-under, under<br>etc<br><br>This setting defines how the frames are arranged in the folder`)
+                    <br>over, mild-over, normal, mild-under, under<br>etc<br><br>This setting should define how the frames are arranged in the folder`)
                     return
                 }
             }
@@ -662,14 +665,23 @@
                 'method': 'POST',
                 'body': JSON.stringify(payload)
             })
-            .then(res => { return res.json() })
-            .then(json => {
-                console.log(json)
-            })
         }
 
         function stopProcessing(){
             socket.emit('stop_processing')
+        }
+
+
+        function isAtBottom() {
+            return window.innerHeight + window.scrollY >= document.documentElement.scrollHeight - 300;
+        }
+
+        // Function to smoothly scroll to the bottom
+        function smoothScrollToBottom() {
+            window.scrollTo({
+                top: document.documentElement.scrollHeight,
+                behavior: "smooth"
+            });
         }
 
         socket.on('error', (data)=>{
@@ -678,7 +690,6 @@
 
         let loadingOutput = document.getElementById('loading_output') 
         socket.on('processing', (data)=>{
-            console.log('processing')
             let p = document.createElement('p')
             p.innerHTML = `Processing Bracket Group: `
             for (i = 0; i < data.length; i++){
@@ -686,19 +697,27 @@
                 p.innerHTML += data[i]
             } 
             loadingOutput.appendChild(p)
+            if (loadingOutput.offsetHeight > window.innerHeight) {
+                // If at the bottom, scroll to the bottom
+                if (isAtBottom()) {
+                    smoothScrollToBottom();
+                }
+            }
         })
 
         socket.on('stopped_process', ()=>{
-            console.log('stoped')
             let p = document.createElement('p')
             p.innerHTML = `Processing Stopped`
             loadingOutput.appendChild(p)
             processing_state(false)
         })
 
-        socket.on('connect', () => {
-            console.log('Connected to the server!');
-            });
+        socket.on('finished_processing', () => {
+            let p = document.createElement('p')
+            p.innerHTML = `Processing Completed`
+            loadingOutput.appendChild(p)
+            processing_state(false)
+        });
 
 
 

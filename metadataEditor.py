@@ -1,3 +1,5 @@
+import sys
+from tkinter import Label, Tk
 from datetime import datetime
 import os
 import time
@@ -10,12 +12,11 @@ import socket
 from engineio.async_drivers import gevent
 
 app = Flask(__name__)
-
 app.config['SECRET_KEY'] = 'verysecretlol'
-socketio = SocketIO(app)
+socketio = SocketIO(app, async_mode="gevent")
 
 keep_running = True
-browser_running = False
+port = 5000
 
 @app.route('/')
 def index():
@@ -55,7 +56,6 @@ def skip_broken():
 
 
 def process_files(data, filenames):
-
     frame_number = 0
     bracket_date = None
     folder_path = data.get('folder_path')
@@ -83,12 +83,12 @@ def process_files(data, filenames):
             'exposure_bias': int(data.get('normal_exposure_bias')),
         },
         'mild-over': {
-            'exposure_time': int(data.get('mild_over_exposure_time')) if data.get('mild_over_exposure_bias') else None,
+            'exposure_time': int(data.get('mild_over_exposure_time')) if data.get('mild_over_exposure_time') else None,
             'exposure_bias': int(data.get('mild_over_exposure_bias')) if data.get('mild_over_exposure_bias') else None,
         },
         'over': {
             'exposure_time': int(data.get('over_exposure_time')),
-            'exposure_bias': int(data.get('over_exposure_bias'),)
+            'exposure_bias': int(data.get('over_exposure_bias')),
         }
     }
     global keep_running
@@ -99,7 +99,8 @@ def process_files(data, filenames):
         filename = filenames[i]
         if frame_number == 0:
             socketio.emit('processing', [filenames[i+j] for j in range(0, len(frame_sequence))])
-            time.sleep(2)
+            socketio.sleep(0)  # Ensure the event is sent immediately
+            socketio.sleep(2)  # Non-blocking delay
             bracket_date = datetime.now()
             bracket_date = bracket_date.strftime("%Y:%m:%d %H:%M:%S")
         current_frame_type = frame_sequence[frame_number]
@@ -107,6 +108,10 @@ def process_files(data, filenames):
         frame_number += 1
         if frame_number >= len(frame_sequence):
             frame_number = 0
+    
+    if keep_running:
+        socketio.emit('finished_processing')
+        socketio.sleep(0)  # Ensure the event is sent immediately
 
 
 @socketio.on('stop_processing')
@@ -117,28 +122,60 @@ def stop_process():
     print('stopping')
     emit('stopped_process')
 
+
 def open_browser(port):
-    # Open the browser to the specified port
+    """Open the browser to the specified port."""
     webbrowser.open(f"http://localhost:{port}")
 
+
 def find_free_port(default_port=5000):
-    # Try to bind to the default port; if unavailable, find another free port
+    """Try to bind to the default port; if unavailable, find another free port."""
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
         sock.bind(("127.0.0.1", default_port))
         port = sock.getsockname()[1]
     except OSError:
-        # If binding fails, find an available port
         sock.bind(("127.0.0.1", 0))
         port = sock.getsockname()[1]
     finally:
         sock.close()
     return port
 
-if __name__ == '__main__':
-    if not browser_running:
-        port = find_free_port()  # Get an available port
-        threading.Thread(target=open_browser, args=(port,)).start()
-        browser_running = True
-    socketio.run(app, host='0.0.0.0', port=port, debug=True)
+
+def start_server():
+    """Start the Flask-SocketIO server."""
+    global port
+    port = find_free_port()  # Get an available port
+    threading.Thread(target=open_browser, args=(port,)).start()
+    threading.Thread(target=lambda: socketio.run(app, host='0.0.0.0', port=port), daemon=True).start()
+
+
+# Tkinter GUI
+def create_tkinter_window():
+    root = Tk()
+    root.title("Image Metadata Editor")
+    root.geometry("300x100")
+
+    if getattr(sys, "frozen", False):  # If running as a PyInstaller bundle
+        base_path = sys._MEIPASS  # Temporary directory for bundled files
+    else:  # If running the script directly
+        base_path = ''
+
+    icon_path = os.path.join(base_path, "logo.ico")
+    root.iconbitmap(icon_path)
+    global port
+    label_text = f"A browser page should open automatically. If not, open a web browser and go to (http://localhost:{port})"
+    label = Label(root, text=label_text, font=("Helvetica", 11), wraplength=250, justify="center")
+    
+    # Center the label in the window
+    label.place(relx=0.5, rely=0.5, anchor="center")
+    
+    start_server()
+
+
+    root.mainloop()
+
+
+if __name__ == "__main__":
+    create_tkinter_window()
