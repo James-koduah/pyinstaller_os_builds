@@ -161,9 +161,11 @@ def create_tkinter_window():
         base_path = sys._MEIPASS  # Temporary directory for bundled files
     else:  # If running the script directly
         base_path = ''
-
-    icon_path = os.path.join(base_path, "logo.ico")
-    root.iconbitmap(icon_path)
+    try:
+        icon_path = os.path.join(base_path, "logo.ico")
+        root.iconbitmap(icon_path)
+    except Exception as e:
+        pass
     global port
     label_text = f"A browser page should open automatically. If not, open a web browser and go to (http://localhost:{port})"
     label = Label(root, text=label_text, font=("Helvetica", 11), wraplength=250, justify="center")
