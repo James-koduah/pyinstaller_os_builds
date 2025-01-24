@@ -69,7 +69,10 @@ def filter_broken_brackets(filenames, group_size):
     while start < len(filenames):
         bracket_start = extract_leading_number(filenames[start])
         bracket_end = bracket_start + group_size - 1 # the number the current bracket should end at
-        file_at_end = extract_leading_number(filenames[start + group_size -1])
+        try:
+            file_at_end = extract_leading_number(filenames[start + group_size -1])
+        except: # If we have reached the end of the filenames array
+            break
         if file_at_end == bracket_end:
             for i in range(start, (start+group_size)):
                 filtered_filenames.append(filenames[i])
