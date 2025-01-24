@@ -48,7 +48,7 @@ def extract_leading_number(filename):
 def sort_all_filenames_in_folder_numerically(images_folder):
     image_filenames = [
         filename for filename in os.listdir(images_folder)
-        if os.path.isfile(os.path.join(images_folder, filename)) and any(filename.lower().endswith(ext) for ext in ['.jpg', '.tif', '.tiff', '.png'])
+        if os.path.isfile(os.path.join(images_folder, filename)) and any(filename.lower().endswith(ext) for ext in ['.jpg', '.tif', '.tiff', '.png', '.jpeg', '.dng', '.cr2', '.nef', '.arw'])
     ]
     return sorted(image_filenames, key=extract_leading_number)
 

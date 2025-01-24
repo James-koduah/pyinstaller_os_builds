@@ -613,7 +613,7 @@
                     
                     processing_state(false)
                     if (json.problem === 'empty_folder'){
-                        error("No file found in folder. Supported formats<br> [jpg, png, tiff, tif]")
+                        error("No file found in folder. Supported formats<br>  ['.jpg', '.tif', '.tiff', '.png', '.jpeg', '.dng', '.cr2', '.nef', '.arw']")
                     }
                     if (json.problem === 'bad_path'){
                         error("Error opening folder. Please make sure you have the correct path set")
