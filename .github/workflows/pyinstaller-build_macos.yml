@@ -37,6 +37,8 @@ jobs:
             --add-data "logo.ico:." \
             --icon=logo.icns \
             metadataEditor.py
+          
+          chmod +x dist/MetadataEditor.app/Contents/MacOS/metadataEditor
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v3
