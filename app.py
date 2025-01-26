@@ -134,6 +134,7 @@ def find_free_port(default_port=5000):
         port = sock.getsockname()[1]
     finally:
         sock.close()
+    print(port)
     return port
 
 if __name__ == '__main__':

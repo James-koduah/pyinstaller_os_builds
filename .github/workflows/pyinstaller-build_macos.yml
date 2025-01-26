@@ -30,16 +30,16 @@ jobs:
       - name: Package as macOS .app
         run: |
           pyinstaller --noconfirm \
-            --windowed \
+            --noconsole \
+            --onefile \
             --add-data "templates:templates" \
             --add-data "static:static" \
             --add-data "logo.ico:." \
             --icon=logo.icns \
-            --name "MetadataEditor" \
             metadataEditor.py
 
       - name: Upload .app bundle
         uses: actions/upload-artifact@v3
         with:
           name: MetadataEditor-macos
-          path: dist/MetadataEditor.app
+          path: dist/

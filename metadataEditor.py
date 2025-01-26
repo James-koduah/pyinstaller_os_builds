@@ -59,7 +59,6 @@ def process_files(data, filenames):
     frame_number = 0
     bracket_date = None
     folder_path = data.get('folder_path')
-    output_path = data.get('output_path')
     frame_sequence = data.get('frame_sequence')
     metadata = {
         'camera_make': data.get('camera_make'),
@@ -104,7 +103,7 @@ def process_files(data, filenames):
             bracket_date = datetime.now()
             bracket_date = bracket_date.strftime("%Y:%m:%d %H:%M:%S")
         current_frame_type = frame_sequence[frame_number]
-        add_exif(folder_path, filename, metadata, frame_data.get(current_frame_type), bracket_date, output_path)
+        add_exif(folder_path, filename, metadata, frame_data.get(current_frame_type), bracket_date)
         frame_number += 1
         if frame_number >= len(frame_sequence):
             frame_number = 0

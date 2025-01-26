@@ -255,10 +255,6 @@
                     <p>Enter folder path</p>
                     <input type="text" id="folder_path" placeholder="C:\Users\username\path\to\images\">
                 </div>
-                <div class="item">
-                    <p>Enter Output folder path (Optional)</p>
-                    <input type="text" id="output_path" placeholder="C:\Users\username\path\to\output\ (Optional)">
-                </div>
                 <h3 title="This is to define how frames are arranged in the folder">Frame Sequence</h3>
                 <div class="item half flex">
                     <input type="radio" name="option" value="option1" checked="true" onclick="threeFrames()">
@@ -388,7 +384,6 @@
 
 
         let folder_path = document.getElementById('folder_path')
-        let output_path = document.getElementById('output_path')
 
         let sequence1 = document.getElementById('sequence1')
         let sequence2 = document.getElementById('sequence2')
@@ -574,7 +569,6 @@
             }
             let payload = {
                     folder_path: folder_path.value,
-                    output_path: output_path.value,
                     frame_sequence: frame_sequence,
                     camera_make: camera_make.value,
                     camera_model: camera_model.value,
