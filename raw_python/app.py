@@ -1,5 +1,4 @@
 import re
-import sys
 import piexif
 from PIL import Image
 import os
@@ -117,60 +116,8 @@ def validate_config_values():
     return True
 
 
-hdr_metadata = {
-    "under": {
-        "ExposureTime": (1, UNDER_EXPOSURE_TIME),       # Exposure time: 1/200s
-        "ExposureBiasValue": (UNDER_EXPOSURE_BIAS, 1),  # Exposure bias: -2 EV
-    },
-    "mild_under": {
-        "ExposureTime": (1, MILD_UNDER_EXPOSURE_TIME),       # Exposure time: 1/200s
-        "ExposureBiasValue": (MILD_UNDER_EXPOSURE_BIAS, 1),  # Exposure bias: -2 EV
-    },
-    "normal": {
-        "ExposureTime": (1, NORMAL_EXPOSURE_TIME),      # Exposure time: 1/100s
-        "ExposureBiasValue": (NORMAL_EXPOSURE_BIAS, 1),   # Exposure bias: 0 EV
-    },
-    "mild_over": {
-        "ExposureTime": (1, MILD_OVER_EXPOSURE_TIME),       # Exposure time: 1/50s
-        "ExposureBiasValue": (MILD_OVER_EXPOSURE_BIAS, 1),   # Exposure bias: +2 EV
-    },
-    "over": {
-        "ExposureTime": (1, OVER_EXPOSURE_TIME),       # Exposure time: 1/50s
-        "ExposureBiasValue": (OVER_EXPOSURE_BIAS, 1),   # Exposure bias: +2 EV
-    },
-}
-
 # "FNumber": (APERTURE, 10),           # Aperture: f/2.8
 # "ISOSpeedRatings": ISO_SPEED,        # ISO 100
-
-def add_exif(image_path, type, date):
-    metadata = hdr_metadata.get(type)
-    if not metadata:
-        return
-    
-    # Build EXIF dictionary
-    exif_dict = {
-        "Exif": {
-            piexif.ExifIFD.ExposureTime: metadata["ExposureTime"],
-            piexif.ExifIFD.FNumber: (APERTURE, 10),
-            piexif.ExifIFD.ISOSpeedRatings: ISO_SPEED,
-            piexif.ExifIFD.ExposureBiasValue: metadata["ExposureBiasValue"],
-            piexif.ExifIFD.FocalLength: (FOCAL_LENGTH, 1),
-            piexif.ExifIFD.WhiteBalance: WHITEBALANCE, 
-        },
-        "0th": {
-            piexif.ImageIFD.Make: CAMERA_MAKE,
-            piexif.ImageIFD.Model: CAMERA_MODEL,  
-            piexif.ImageIFD.DateTime: date,
-        },
-    }
-
-    # Convert EXIF dictionary to bytes
-    exif_bytes = piexif.dump(exif_dict)
-
-    # Open the image and save with updated EXIF data
-    image = Image.open(f"{IMAGES_FOLDER}/{image_path}")
-    image.save(f"{IMAGES_FOLDER}/{image_path}", exif=exif_bytes)
 
 
 filename_sequence = []
@@ -239,6 +186,69 @@ def filter_broken_brackets(filenames, group_size):
             continue
         start = start + group_size
     return filtered_filenames
+
+
+hdr_metadata = {
+    "under": {
+        "ExposureTime": (1, UNDER_EXPOSURE_TIME),       # Exposure time: 1/200s
+        "ExposureBiasValue": (UNDER_EXPOSURE_BIAS, 1),  # Exposure bias: -2 EV
+    },
+    "mild_under": {
+        "ExposureTime": (1, MILD_UNDER_EXPOSURE_TIME),       # Exposure time: 1/200s
+        "ExposureBiasValue": (MILD_UNDER_EXPOSURE_BIAS, 1),  # Exposure bias: -2 EV
+    },
+    "normal": {
+        "ExposureTime": (1, NORMAL_EXPOSURE_TIME),      # Exposure time: 1/100s
+        "ExposureBiasValue": (NORMAL_EXPOSURE_BIAS, 1),   # Exposure bias: 0 EV
+    },
+    "mild_over": {
+        "ExposureTime": (1, MILD_OVER_EXPOSURE_TIME),       # Exposure time: 1/50s
+        "ExposureBiasValue": (MILD_OVER_EXPOSURE_BIAS, 1),   # Exposure bias: +2 EV
+    },
+    "over": {
+        "ExposureTime": (1, OVER_EXPOSURE_TIME),       # Exposure time: 1/50s
+        "ExposureBiasValue": (OVER_EXPOSURE_BIAS, 1),   # Exposure bias: +2 EV
+    },
+}
+
+def add_exif(image_path, type, date):
+    metadata = hdr_metadata.get(type)
+    if not metadata:
+        return
+    
+    # Build EXIF dictionary
+    exif_dict = {
+        "Exif": {
+            piexif.ExifIFD.ExposureTime: metadata["ExposureTime"],
+            piexif.ExifIFD.FNumber: (APERTURE, 10),
+            piexif.ExifIFD.ISOSpeedRatings: ISO_SPEED,
+            piexif.ExifIFD.SensitivityType: "Recommended Exposure Index",
+            piexif.ExifIFD.RecommendedExposureIndex: 100,
+            piexif.ExifIFD.ExifVersion: '0230',
+            piexif.ExifIFD.DateTimeOriginal: datetime.now().strftime("%Y:%m:%d %H:%M:%S").encode("utf-8"),
+           
+            piexif.ExifIFD.ApertureValue: (APERTURE, 10),
+            piexif.ExifIFD.ShutterSpeedValue: metadata["ExposureTime"],
+            piexif.ExifIFD.MaxApertureValue: 4.0,
+            piexif.ExifIFD.MeteringMode: 'Multi-segment',
+            piexif.ExifIFD.FocalLength: (FOCAL_LENGTH, 1),
+            piexif.ExifIFD.ExposureMode: "Auto bracket",
+
+            piexif.ExifIFD.ExposureBiasValue: metadata["ExposureBiasValue"],
+            piexif.ExifIFD.WhiteBalance: WHITEBALANCE, 
+             },
+        "0th": {
+            piexif.ImageIFD.Make: CAMERA_MAKE,
+            piexif.ImageIFD.Model: CAMERA_MODEL, 
+        },
+    }
+
+    # Convert EXIF dictionary to bytes
+    exif_bytes = piexif.dump(exif_dict)
+
+    # Open the image and save with updated EXIF data
+    image = Image.open(f"{IMAGES_FOLDER}/{image_path}")
+    image.save(f"{IMAGES_FOLDER}/{image_path}", exif=exif_bytes)
 
 
 def main():
